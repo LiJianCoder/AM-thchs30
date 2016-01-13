@@ -1,0 +1,101 @@
+============================================================================
+               DNN Hybrid Training & Decoding (Karel's recipe)            
+============================================================================
+steps/nnet/make_denlats.sh --nj 6 --sub-split 20 --cmd run.pl --config conf/decode_dnn.config --acwt 0.0909 data-fmllr-tri5/train data/lang exp/dnn5b_pretrain-dbn_dnn_smbr exp/dnn5b_pretrain-dbn_dnn_smbr_denlats
+Making unigram grammar FST in exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/lang
+Compiling decoding graph in exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/dengraph
+Graph exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/dengraph/HCLG.fst already exists: skipping graph creation.
+steps/nnet/make_denlats.sh: generating denlats from data 'data-fmllr-tri5/train', putting lattices in 'exp/dnn5b_pretrain-dbn_dnn_smbr_denlats'
+Not processing subset 1 as already done (delete exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/.done.1 if not)
+Not processing subset 2 as already done (delete exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/.done.2 if not)
+Not processing subset 3 as already done (delete exp/dnn5b_pretrain-dbn_dnn_smbr_denlats/.done.3 if not)
+steps/nnet/make_denlats.sh: done generating denominator lattices.
+steps/nnet/train_mpe.sh --cmd run.pl --num-iters 2 --acwt 0.0909 --do-smbr true data-fmllr-tri5/train data/lang exp/dnn5b_pretrain-dbn_dnn_smbr exp/dnn5b_pretrain-dbn_dnn_smbr_ali exp/dnn5b_pretrain-dbn_dnn_smbr_denlats exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats
+steps/nnet/train_mpe.sh: no such file exp/dnn5b_pretrain-dbn_dnn_smbr_ali/tree
+============================================================================
+               DNN Hybrid Training & Decoding (Karel's recipe)            
+============================================================================
+steps/nnet/align.sh --nj 6 --cmd run.pl data-fmllr-tri5/train data/lang exp/dnn5b_pretrain-dbn_dnn_smbr exp/dnn5b_pretrain-dbn_dnn_smbr_ali
+steps/nnet/align.sh: aligning data 'data-fmllr-tri5/train' using nnet/model 'exp/dnn5b_pretrain-dbn_dnn_smbr', putting alignments in 'exp/dnn5b_pretrain-dbn_dnn_smbr_ali'
+steps/nnet/align.sh: done aligning data.
+steps/nnet/train_mpe.sh --cmd run.pl --num-iters 2 --acwt 0.0909 --do-smbr true data-fmllr-tri5/train data/lang exp/dnn5b_pretrain-dbn_dnn_smbr exp/dnn5b_pretrain-dbn_dnn_smbr_ali exp/dnn5b_pretrain-dbn_dnn_smbr_denlats exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats
+Pass 1 (learnrate 0.00001)
+ TRAINING FINISHED; Time taken = 87.4347 min; processed 1748.91 frames per second.
+ Done 9998 files, 2 with no reference alignments, 0 with no lattices, 0 with other errors.
+ Overall average frame-accuracy is 0.903156 over 9174910 frames.
+Pass 2 (learnrate 1e-05)
+ TRAINING FINISHED; Time taken = 87.1395 min; processed 1754.83 frames per second.
+ Done 9998 files, 2 with no reference alignments, 0 with no lattices, 0 with other errors.
+ Overall average frame-accuracy is 0.908503 over 9174910 frames.
+MPE/sMBR training finished
+Re-estimating priors by forwarding the training set.
+steps/nnet/make_priors.sh --cmd run.pl --nj 6 data-fmllr-tri5/train exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats
+Accumulating prior stats by forwarding 'data-fmllr-tri5/train' with 'exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats'
+Succeeded creating prior counts 'exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/prior_counts' from 'data-fmllr-tri5/train'
+steps/nnet/decode.sh --nj 10 --cmd run.pl --config conf/decode_dnn.config --nnet exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/1.nnet --acwt 0.0909 exp/tri5/graph data-fmllr-tri5/dev exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_dev
+data-fmllr-tri5/dev/stm does not exist: using local/score_basic.sh
+steps/nnet/decode.sh --nj 10 --cmd run.pl --config conf/decode_dnn.config --nnet exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/2.nnet --acwt 0.0909 exp/tri5/graph data-fmllr-tri5/dev exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_dev
+data-fmllr-tri5/dev/stm does not exist: using local/score_basic.sh
+============The WER of dev and test==========
+============The WER of dev==============
+%WER 12.02 [ 7014 / 58348, 516 ins, 261 del, 6237 sub ] exp/dnn5b_pretrain-dbn_dnn/decode_dev/wer_4
+%WER 11.69 [ 6819 / 58348, 562 ins, 187 del, 6070 sub ] exp/dnn5b_pretrain-dbn_dnn_smbr/decode_dev/wer_4
+%WER 11.87 [ 6924 / 58348, 674 ins, 160 del, 6090 sub ] exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_dev/wer_4
+%WER 44.58 [ 26014 / 58348, 627 ins, 2066 del, 23321 sub ] exp/mono/decode_dev/wer_9
+%WER 28.71 [ 16754 / 58348, 609 ins, 731 del, 15414 sub ] exp/tri1/decode_dev/wer_9
+%WER 28.55 [ 16659 / 58348, 653 ins, 679 del, 15327 sub ] exp/tri2/decode_dev/wer_9
+%WER 24.05 [ 14030 / 58348, 518 ins, 603 del, 12909 sub ] exp/tri3/decode_dev/wer_9
+%WER 21.70 [ 12663 / 58348, 487 ins, 498 del, 11678 sub ] exp/tri4/decode_dev/wer_9
+%WER 25.54 [ 14903 / 58348, 502 ins, 640 del, 13761 sub ] exp/tri4/decode_dev.si/wer_9
+%WER 19.00 [ 11087 / 58348, 544 ins, 405 del, 10138 sub ] exp/tri5/decode_dev/wer_9
+%WER 22.57 [ 13170 / 58348, 527 ins, 489 del, 12154 sub ] exp/tri5/decode_dev.si/wer_9
+============The WER of test==============
+%WER 22.08 [ 35829 / 162278, 1617 ins, 1627 del, 32585 sub ] exp/tri5/decode_test/wer_9
+%WER 25.88 [ 42005 / 162278, 1630 ins, 1974 del, 38401 sub ] exp/tri5/decode_test.si/wer_9
+============================================================================
+               DNN Hybrid Training & Decoding (Karel's recipe)            
+============================================================================
+steps/nnet/make_fmllr_feats.sh --nj 10 --cmd run.pl --transform-dir exp/tri5/decode_test data-fmllr-tri5/test data/test exp/tri5 data-fmllr-tri5/test/log data-fmllr-tri5/test/data
+steps/nnet/make_fmllr_feats.sh: feature type is lda_fmllr
+utils/copy_data_dir.sh: copied data from data/test to data-fmllr-tri5/test
+utils/validate_data_dir.sh: Successfully validated data-directory data-fmllr-tri5/test
+run.pl: 10 / 10 failed, log is in data-fmllr-tri5/test/log/make_fmllr_feats.*.log
+steps/decode_fmllr.sh --cmd run.pl --nj 10 exp/tri5/graph data/test exp/tri5/decode_test
+steps/decode.sh --scoring-opts  --num-threads 1 --skip-scoring false --acwt 0.083333 --nj 10 --cmd run.pl --beam 10.0 --model exp/tri5/final.alimdl --max-active 2000 exp/tri5/graph data/test exp/tri5/decode_test.si
+decode.sh: feature type is lda
+data/test/stm does not exist: using local/score_basic.sh
+steps/decode_fmllr.sh: feature type is lda
+steps/decode_fmllr.sh: getting first-pass fMLLR transforms.
+steps/decode_fmllr.sh: doing main lattice generation phase
+steps/decode_fmllr.sh: estimating fMLLR transforms a second time.
+steps/decode_fmllr.sh: doing a final pass of acoustic rescoring.
+data/test/stm does not exist: using local/score_basic.sh
+============================================================================
+               DNN Hybrid Training & Decoding (Karel's recipe)            
+============================================================================
+steps/nnet/make_fmllr_feats.sh --nj 10 --cmd run.pl --transform-dir exp/tri5/decode_test data-fmllr-tri5/test data/test exp/tri5 data-fmllr-tri5/test/log data-fmllr-tri5/test/data
+steps/nnet/make_fmllr_feats.sh: feature type is lda_fmllr
+utils/copy_data_dir.sh: copied data from data/test to data-fmllr-tri5/test
+utils/validate_data_dir.sh: Successfully validated data-directory data-fmllr-tri5/test
+steps/nnet/make_fmllr_feats.sh: Done!, type lda_fmllr, data/test --> data-fmllr-tri5/test, using : raw-trans None, gmm exp/tri5, trans exp/tri5/decode_test
+steps/nnet/decode.sh --nj 10 --cmd run.pl --config conf/decode_dnn.config --nnet exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/1.nnet --acwt 0.0909 exp/tri5/graph data-fmllr-tri5/test exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_test
+data-fmllr-tri5/test/stm does not exist: using local/score_basic.sh
+steps/nnet/decode.sh --nj 10 --cmd run.pl --config conf/decode_dnn.config --nnet exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/2.nnet --acwt 0.0909 exp/tri5/graph data-fmllr-tri5/test exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_test
+data-fmllr-tri5/test/stm does not exist: using local/score_basic.sh
+============The WER of dev and test==========
+============The WER of dev==============
+%WER 12.02 [ 7014 / 58348, 516 ins, 261 del, 6237 sub ] exp/dnn5b_pretrain-dbn_dnn/decode_dev/wer_4
+%WER 11.69 [ 6819 / 58348, 562 ins, 187 del, 6070 sub ] exp/dnn5b_pretrain-dbn_dnn_smbr/decode_dev/wer_4
+%WER 11.87 [ 6924 / 58348, 674 ins, 160 del, 6090 sub ] exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_dev/wer_4
+%WER 44.58 [ 26014 / 58348, 627 ins, 2066 del, 23321 sub ] exp/mono/decode_dev/wer_9
+%WER 28.71 [ 16754 / 58348, 609 ins, 731 del, 15414 sub ] exp/tri1/decode_dev/wer_9
+%WER 28.55 [ 16659 / 58348, 653 ins, 679 del, 15327 sub ] exp/tri2/decode_dev/wer_9
+%WER 24.05 [ 14030 / 58348, 518 ins, 603 del, 12909 sub ] exp/tri3/decode_dev/wer_9
+%WER 21.70 [ 12663 / 58348, 487 ins, 498 del, 11678 sub ] exp/tri4/decode_dev/wer_9
+%WER 25.54 [ 14903 / 58348, 502 ins, 640 del, 13761 sub ] exp/tri4/decode_dev.si/wer_9
+%WER 19.00 [ 11087 / 58348, 544 ins, 405 del, 10138 sub ] exp/tri5/decode_dev/wer_9
+%WER 22.57 [ 13170 / 58348, 527 ins, 489 del, 12154 sub ] exp/tri5/decode_dev.si/wer_9
+============The WER of test==============
+%WER 16.50 [ 26782 / 162278, 2535 ins, 773 del, 23474 sub ] exp/dnn5b_pretrain-dbn_dnn_smbr_i1lats/decode_test/wer_4
+%WER 22.04 [ 35766 / 162278, 1355 ins, 1601 del, 32810 sub ] exp/tri5/decode_test/wer_9
+%WER 25.99 [ 42168 / 162278, 1437 ins, 2002 del, 38729 sub ] exp/tri5/decode_test.si/wer_9
